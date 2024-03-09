@@ -1,4 +1,6 @@
 Flask==1.1.2
 gunicorn==20.0.4
-pytz
-Pillow
+pytz==2024.1
+Pillow==10.2.0
+python-dotenv
+discord.py
