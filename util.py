@@ -11,8 +11,12 @@ DEFAULT_TIMEZONE = "Asia/Jakarta"
 DEFAULT_START_PUASA_DATE = "2024-03-12"
 
 
-def get_timezone() -> str:
-    return os.getenv('TIMEZONE') or DEFAULT_TIMEZONE
+def get_timezone_info() -> pytz.timezone:
+    return pytz.timezone(get_timezone_string())
+
+
+def get_timezone_string() -> str:
+    return os.getenv('TZ') or DEFAULT_TIMEZONE
 
 
 def get_puasa_day() -> int:
@@ -23,7 +27,7 @@ def get_puasa_day() -> int:
     if len(date_part) != 3:
         raise Exception('Invalid date format, must be YYYY-MM-DD')
 
-    timezone = pytz.timezone(get_timezone())
+    timezone = get_timezone_info()
 
     start_date = datetime(
         year=int(date_part[0]),
@@ -36,5 +40,8 @@ def get_puasa_day() -> int:
 
     # dimulai dari 1
     difference = current_date + timedelta(days=1) - start_date
+
+    if difference.days < 1:
+        difference -= timedelta(days=1)
 
     return difference.days

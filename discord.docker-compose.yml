@@ -1,0 +1,15 @@
+version: "3.5"
+
+services:
+  app:
+    build:
+      context: .
+      dockerfile: discord.dockerfile
+      # args:
+      #   USER_ID: 1004
+    working_dir: /app
+    image: krab-puasa
+    container_name: discord-krab-puasa
+    restart: always
+    volumes:
+      - ./:/app

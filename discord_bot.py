@@ -5,6 +5,7 @@ import discord
 from discord.ext import tasks
 import os
 from dotenv import load_dotenv
+import pytz
 import image_generation as ImageGeneration
 import util as Util
 
@@ -13,6 +14,8 @@ load_dotenv()
 TOKEN = os.getenv('DISCORD_TOKEN')
 GUILD_ID = os.getenv('DISCORD_GUILD_ID')
 TARGET_CHANNEL_ID = os.getenv('DISCORD_TARGET_CHANNEL_ID')
+
+SAHUR_HOUR = 4
 
 if not TOKEN or not GUILD_ID:
     raise Exception(
@@ -27,6 +30,8 @@ intents.guilds = True
 client = discord.Client(intents=intents)
 tree = discord.app_commands.CommandTree(client)
 
+prefix = '!'
+
 
 @client.event
 async def on_ready():
@@ -38,15 +43,15 @@ async def on_ready():
 
 @client.event
 async def on_message(message):
-    print(message.author)
-    print(message)
     if message.author == client.user:
         return
 
-    if message.content.startswith('hello'):
-        await message.channel.send('Hello!')
-        await message.channel.send('World')
-        with open('images/base_image.jpg', 'rb') as f:
+    if message.content.startswith(f'{prefix}hello'):
+        await message.channel.send('Hello World!')
+    elif message.content.startswith(f'{prefix}puasa'):
+        day = Util.get_puasa_day()
+        filepath = ImageGeneration.generate_puasa_hari_ke_image(day)
+        with open(filepath, 'rb') as f:
             picture = discord.File(f)
             await message.channel.send(file=picture)
 
@@ -80,17 +85,17 @@ async def sahur_notification():
 @sahur_notification.before_loop
 async def before_msg1():
     for _ in range(60 * 60 * 24):  # loop the whole day
-        if datetime.now().hour == 1:  # 24 hour format
+        if datetime.now(tz=Util.get_timezone_info()).hour == SAHUR_HOUR:  # 24 hour format
             print('It is time')
             return
-        # wait a second before looping again. You can make it more
-        await asyncio.sleep(seconds_until_sahur())
+        await asyncio.sleep(1)
+        # await asyncio.sleep(seconds_until_sahur())
 
 
 def seconds_until_sahur():
-    now = datetime.now()
-    target = now.replace(hour=1,
-                         minute=0, second=0, microsecond=0)
+    now = datetime.now(tz=Util.get_timezone_info())
+    target = (now + timedelta(days=1)).replace(hour=SAHUR_HOUR,
+                                               minute=0, second=0, microsecond=0)
     diff = (target - now).total_seconds()
     print(f"Sahur seconds : {target} - {now} = {diff}")
     return diff
