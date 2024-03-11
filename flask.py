@@ -1,6 +1,7 @@
 from flask import Flask, send_file
 from datetime import datetime
-import image_generation as ImageGeneration
+import module.image_generation as ImageGeneration
+import module.util as Util
 import pytz
 
 app = Flask(__name__)
@@ -12,7 +13,7 @@ START_DATE = datetime(2021, 4, 12, tzinfo=TZ)
 
 @app.route("/", methods=["GET"])
 def index():
-    day = (datetime.now(tz=TZ) - START_DATE).days
+    day = Util.get_puasa_day()
     return get_image_response(day)
 
 
@@ -22,7 +23,7 @@ def custom(day):
 
 
 def get_image_response(day):
-    filepath = ImageGeneration.create_new_image(day)
+    filepath = ImageGeneration.get_puasa_hari_ke_image(day)
     return send_file(filepath, mimetype="image/jpg")
 
 
