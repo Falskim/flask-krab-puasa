@@ -30,13 +30,23 @@ tree = discord.app_commands.CommandTree(client)
 prefix = '!'
 
 
+ENABLE_PUASA_FEATURE = True
+ENABLE_SAHUR_FEATURE = True
+ENABLE_TARAWIH_FEATURE = False
+
+
 @client.event
 async def on_ready():
     print(f'We have logged in as {client.user}')
 
-    puasa_notification.start()
-    sahur_notification.start()
-    # tarawih_notification.start()
+    if ENABLE_PUASA_FEATURE:
+        puasa_notification.start()
+
+    if ENABLE_SAHUR_FEATURE:
+        sahur_notification.start()
+
+    if ENABLE_TARAWIH_FEATURE:
+        tarawih_notification.start()
 
     # ONE TIME ONLY
     # await tree.sync(guild=discord.Object(id=GUILD_ID))
@@ -51,24 +61,24 @@ async def on_message(message):
 
     if message.content.startswith(f'{prefix}hello'):
         await channel.send('Hello World!')
-    elif message.content.startswith(f'{prefix}puasa'):
+    elif message.content.startswith(f'{prefix}puasa') and ENABLE_PUASA_FEATURE:
         day = Util.get_puasa_day()
         filepath = ImageGeneration.get_puasa_hari_ke_image(day)
         with open(filepath, 'rb') as f:
             print('Sending', filepath)
             await channel.send(file=discord.File(f))
-    # elif message.content.startswith(f'{prefix}tarawih'):
-    #     day = Util.get_tarawih_day()
-    #     filepath = ImageGeneration.get_tarawih_hari_ke_image(day)
-    #     try:
-    #         with open(filepath, 'rb') as f:
-    #             await channel.send(file=discord.File(f))
-    #     except:
-    #         await channel.send('Invalid Day Param')
-    elif message.content.startswith(f'{prefix}sahur'):
+    elif message.content.startswith(f'{prefix}sahur') and ENABLE_SAHUR_FEATURE:
         filepath = ImageGeneration.get_sahur_assets()
         with open(filepath, 'rb') as f:
             await channel.send(file=discord.File(f))
+    elif message.content.startswith(f'{prefix}tarawih') and ENABLE_TARAWIH_FEATURE:
+        day = Util.get_tarawih_day()
+        filepath = ImageGeneration.get_tarawih_hari_ke_image(day)
+        try:
+            with open(filepath, 'rb') as f:
+                await channel.send(file=discord.File(f))
+        except:
+            await channel.send('Invalid Day Param')
 
 
 @tree.command(
@@ -77,6 +87,9 @@ async def on_message(message):
     guild=discord.Object(id=GUILD_ID)
 )
 async def puasa_command(ctx, day: Optional[int]):
+    if not ENABLE_PUASA_FEATURE:
+        return
+
     if day == None:
         day = Util.get_puasa_day()
 
@@ -92,6 +105,9 @@ async def puasa_command(ctx, day: Optional[int]):
     guild=discord.Object(id=GUILD_ID)
 )
 async def sahur_command(ctx):
+    if not ENABLE_SAHUR_FEATURE:
+        return
+
     filepath = ImageGeneration.get_sahur_assets()
     with open(filepath, 'rb') as f:
         await ctx.response.send_message(file=discord.File(f))
@@ -103,6 +119,9 @@ async def sahur_command(ctx):
     guild=discord.Object(id=GUILD_ID)
 )
 async def tarawih_command(ctx, day: Optional[int]):
+    if not ENABLE_TARAWIH_FEATURE:
+        return
+
     if day == None:
         day = Util.get_tarawih_day()
 
@@ -132,8 +151,7 @@ async def before_puasa_notification():
     for _ in range(60 * 60 * 24):  # loop the whole day
 
         now = datetime.now(tz=Util.get_timezone_info())
-        # target = now.replace(hour=4, minute=30, second=0)
-        target = now.replace(hour=23, minute=14, second=0)
+        target = now.replace(hour=4, minute=30, second=0)
 
         if now.hour == target.hour and now.minute == target.minute:
             print('Start puasa notification')
@@ -159,8 +177,7 @@ async def before_sahur_notification():
     for _ in range(60 * 60 * 24):
 
         now = datetime.now(tz=Util.get_timezone_info())
-        # target = now.replace(hour=4, minute=30, second=0)
-        target = now.replace(hour=23, minute=10, second=0)
+        target = now.replace(hour=3, minute=00, second=0)
 
         if now.hour == target.hour and now.minute == target.minute:
             print('Start sahur notification')
@@ -190,8 +207,7 @@ async def before_tarawih_notification():
     for _ in range(60 * 60 * 24):
 
         now = datetime.now(tz=Util.get_timezone_info())
-        # target = now.replace(hour=4, minute=30, second=0)
-        target = now.replace(hour=23, minute=12, second=0)
+        target = now.replace(hour=18, minute=30, second=0)
 
         if now.hour == target.hour and now.minute == target.minute:
             print('Start tarawih notification')
