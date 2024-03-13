@@ -32,7 +32,7 @@ prefix = '!'
 
 ENABLE_PUASA_FEATURE = True
 ENABLE_SAHUR_FEATURE = True
-ENABLE_TARAWIH_FEATURE = False
+ENABLE_TARAWIH_FEATURE = True
 
 
 @client.event
